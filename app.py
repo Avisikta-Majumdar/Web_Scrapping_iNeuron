@@ -17,39 +17,47 @@ def index():
             flipkartPage = uClient.read() # reading the webpage
             uClient.close() # closing the connection to the web server
             flipkart_html = bs(flipkartPage, "html.parser") # parsing the webpage as HTML
-            bigboxes = flipkart_html.findAll("div", {"class": "_1AtVbE col-12-12"}) # seacrhing for appropriate tag to redirect to the product link
+            bigboxes = flipkart_html.findAll("div", {"class": "_2kHMtA"}) # seacrhing for appropriate tag to redirect to the product link
             del bigboxes[0:3] # the first 3 members of the list do not contain relevant information, hence deleting them.
             box = bigboxes[0] #  taking the first iteration (for demo)
-            productLink = "https://www.flipkart.com" + box.div.div.div.a['href'] # extracting the actual product link
+            productLink = "https://www.flipkart.com" + box.a['href'] # extracting the actual product link
             prodRes = requests.get(productLink) # getting the product page from server
             prod_html = bs(prodRes.text, "html.parser") # parsing the product page as HTML
-            commentboxes = prod_html.find_all('div', {'class': "_2c2kV"}) # finding the HTML section containing the customer comments
-
+            commentboxes = prod_html.find_all('div', {'class': "col _2wzgFH"}) # finding the HTML section containing the customer comments
+            i=0
+            comment_boxes_name = prod_html.find_all('div', {'class': "row _3n8db9"})
+            comment_boxes_comments = prod_html.find_all('div', {'class': "t-ZTKy"})
 
             reviews = [] # initializing an empty list for reviews
             #  iterating over the comment section to get the details of customer and their comments
             for commentbox in commentboxes:
                 try:
-                    name = commentbox.div.div.find_all('p', {'class': '_3LWZlK _1BLPMq'})[0].text
+                    rating = str(commentbox.div.text)[0]
+                except:
+                    rating = 'No Rating'
+
+                try:
+                    commentHead = str(commentbox.div.text)[1:]
+                except:
+                    commentHead = 'No Comment Heading'
+
+    
+                try:
+                    comment_boxes_name0 = comment_boxes_name[i]
+                    ww = comment_boxes_name0
+                    name = ww.div.p.text
+                    name = name.title()
 
                 except:
                     name = 'No Name'
 
                 try:
-                    rating = commentbox.div.div.div.div.text
-
-                except:
-                    rating = 'No Rating'
-
-                try:
-                    commentHead = commentbox.div.div.div.p.text
-                except:
-                    commentHead = 'No Comment Heading'
-                try:
-                    comtag = commentbox.div.div.find_all('div', {'class': ''})
-                    custComment = comtag[0].div.text
+                    comment_boxes_comments_ = comment_boxes_comments[i]
+                    ww = comment_boxes_comments_
+                    custComment = ww.div.div.text
                 except:
                     custComment = 'No Customer Comment'
+                i+=1
                 #fw.write(searchString+","+name.replace(",", ":")+","+rating + "," + commentHead.replace(",", ":") + "," + custComment.replace(",", ":") + "\n")
                 mydict = {"Product": searchString, "Name": name, "Rating": rating, "CommentHead": commentHead,
                               "Comment": custComment} # saving that detail to a dictionary
